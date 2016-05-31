@@ -27,6 +27,9 @@
  *
  */
 
+#include <stdio.h>
+#include <termios.h>
+
 #include "zsh.mdh"
 
 #include "zshpaths.h"
@@ -36,9 +39,81 @@
 
 #include "version.h"
 
+//<<<<<<< HEAD
 #if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux)
 #include <sys/sysctl.h>
 #endif
+//=======
+#include <poll.h>
+
+#define RIFT_ARG_TRACE_LEVEL    "trace_level"
+#define RIFT_ARG_NETCONF_HOST   "netconf_host"
+#define RIFT_ARG_NETCONF_PORT   "netconf_port"
+#define RIFT_ARG_USER           "username"
+#define RIFT_ARG_PASSWD         "passwd"
+#define RIFT_ARG_USE_NETCONF    "netconf"
+#define RIFT_ARG_USE_RWMSG      "rwmsg"
+#define RIFT_MAX_USERNAME_PASSWORD_LENGTH (64)
+
+static void rift_strip_newline(char * line, size_t * length)
+{
+  
+  if (*length >= 1 && line[*length - 1] == '\n')
+  {
+    line[*length - 1] = 0;
+    *length -= 1;
+  } 
+}
+
+static size_t rift_get_username(char * username)
+{
+  size_t length = RIFT_MAX_USERNAME_PASSWORD_LENGTH; // getline doesn't accept const
+
+  // Display prompt.
+  printf("\nEnter NETCONF username: ");
+
+  // Read the username.
+  char *username_start = &username[0];
+  size_t username_length = getline (&username_start, &length, stdin);
+  
+  rift_strip_newline(username, &username_length);
+
+  return username_length;
+}
+
+static size_t rift_get_password(char * password)
+{
+  struct termios old, new;
+  size_t length = RIFT_MAX_USERNAME_PASSWORD_LENGTH; // getline doesn't accept const
+
+  // Turn echoing off and fail if we can’t. 
+  int status = tcgetattr (fileno (stdin), &old);
+  new = old;
+  new.c_lflag &= ~ECHO;
+  status |= tcsetattr (fileno (stdin), TCSAFLUSH, &new);
+  (void) status;
+  // ATTN: RIFT_ASSERT_MESSAGE(status == 0, "Failed to turn off echo on stdin to get password.");
+
+  // Display prompt
+  printf("\nEnter NETCONF password: ");
+
+  // Read the password. 
+  char *password_start = &password[0];
+  size_t password_length = getline (&password_start, &length, stdin);
+  rift_strip_newline(password, &password_length);
+
+  printf("\n"); // clear the line becuase the newline isn't echoed
+
+  // Restore terminal. 
+  (void) tcsetattr (fileno (stdin), TCSAFLUSH, &old);
+  
+  return password_length;
+}
+
+
+mod_export rift_cmdargs_t rift_cmdargs;
+
+//>>>>>>> 095f79748 (RIFT.ware changes)
 
 /**/
 int noexitct = 0;
@@ -335,6 +410,116 @@ parseopts_insert(LinkList optlist, char *base, int optno)
     addlinknode(optlist, ptr);
 }
 
+
+static void init_rift_args()
+{
+  rift_cmdargs.schema_listing = NULL;
+  rift_cmdargs.trace_level = -1;
+  rift_cmdargs.use_netconf = -1;
+  rift_cmdargs.netconf_host = NULL;
+  rift_cmdargs.netconf_port = NULL;
+  rift_cmdargs.username = NULL;
+  rift_cmdargs.passwd = NULL;
+}
+
+static void cleanup_rift_args()
+{
+  if (rift_cmdargs.schema_listing) {
+    free(rift_cmdargs.schema_listing);
+    rift_cmdargs.schema_listing = NULL;
+  }
+  if (rift_cmdargs.netconf_host) {
+    free(rift_cmdargs.netconf_host);
+    rift_cmdargs.netconf_host = NULL;
+  }
+  if (rift_cmdargs.netconf_port) {
+    free(rift_cmdargs.netconf_port);
+    rift_cmdargs.netconf_port = NULL;
+  }
+  if (rift_cmdargs.username) {
+    free(rift_cmdargs.username);
+    rift_cmdargs.username = NULL;
+  }
+  if (rift_cmdargs.passwd) {
+    free(rift_cmdargs.passwd);
+    rift_cmdargs.passwd = NULL;
+  }
+}
+
+static int parse_rift_arg(char **argv)
+{
+  int parsed = 0;
+
+  /* The -- would have been stripped already */
+  if (strcmp(*argv, "schema_listing") == 0) {
+    ++argv; parsed += 2;
+    if (*argv == NULL) {
+      zwarn("expected schema listing value");
+    } else {
+      rift_cmdargs.schema_listing = strdup(*argv);
+      fflush(stdout);
+    }
+  } else if (strcmp(*argv, RIFT_ARG_TRACE_LEVEL) == 0) {
+    ++argv; parsed += 2;
+    if (*argv == NULL) {
+      zwarn("expected trace_level value");
+    } else {
+      rift_cmdargs.trace_level = atoi(*argv);
+    }
+  } else if (strcmp(*argv, RIFT_ARG_NETCONF_HOST) == 0) {
+    ++argv; parsed += 2;
+    if (*argv == NULL) {
+      zwarn("expected netconf_host value");
+    } else {
+      rift_cmdargs.netconf_host = strdup(*argv);
+      rift_cmdargs.use_netconf = 1;
+    }
+  } else if (strcmp(*argv, RIFT_ARG_NETCONF_PORT) == 0) {
+    ++argv; parsed += 2;
+    if (*argv == NULL) {
+      zwarn("expected netconf_port value");
+    } else {
+      rift_cmdargs.netconf_port = strdup(*argv);
+      rift_cmdargs.use_netconf = 1;
+    }
+  } else if (strcmp(*argv, RIFT_ARG_USER) == 0) {
+    ++argv; parsed += 2;
+    if (*argv == NULL) {
+      zwarn("expected username value");
+    } else {
+      rift_cmdargs.username = strdup(*argv);
+    }
+  } else if (strcmp(*argv, RIFT_ARG_PASSWD) == 0) {
+    ++argv; parsed += 2;
+    if (*argv == NULL) {
+      zwarn("expected username value");
+    } else {
+      rift_cmdargs.passwd = strdup(*argv);
+    }
+  } else if (strcmp(*argv, RIFT_ARG_USE_NETCONF) == 0) {
+    rift_cmdargs.use_netconf = 1;
+    ++parsed;
+  } else if (strcmp(*argv, RIFT_ARG_USE_RWMSG) == 0) {
+    rift_cmdargs.use_netconf = 0;
+    ++parsed;
+  }
+
+  return parsed;
+}
+
+static void print_rift_help()
+{
+  printf("\nRiftware Options:\n");
+  printf("  --schema_listing FILE  Schema listing text file from /usr/data/manifest\n");
+  printf("  --trace_level    INT   Debug trace-level from 0-9 [default=5]\n");
+  printf("  --netconf            Enable netconf mode [default=yes]\n");
+  printf("  --netconf_host   HOST  Netconf server host [netconf mode, default=127.0.0.1]\n");
+  printf("  --netconf_port   PORT  Netconf server port [netconf mode,default=2022]\n");
+  printf("  --username       USER  Username to login [netconf mode,default=admin]\n");
+  printf("  --passwd         PASS  Password to login [neconf mode,default=admin]\n"); 
+  printf("  --rwmsg              Use Riftware messaging instead of Netconf [default=no]\n");
+}
+
 /*
  * This sets the global emulation plus the options we traditionally
  * set immediately after that.  This is just for historical consistency
@@ -387,6 +572,7 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 {
     int optionbreak = 0;
     int action, optno;
+    int parsed;
     char **argv = *argvp;
     int toplevel = ((flags & PARSEARGS_TOPLEVEL) != 0u);
     int emulate_required = toplevel;
@@ -435,6 +621,7 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		    printhelp();
 		    LAST_OPTION(0);
 		}
+//<<<<<<< HEAD
 		if (!strcmp(*argv, "emulate")) {
 		    ++argv;
 		    if (!*argv) {
@@ -448,6 +635,12 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		    top_emulation = *argv;
 		    break;
 		}
+//=======
+                if ((parsed = parse_rift_arg(argv)) != 0) {
+                  argv += (parsed - 1);
+                  break;
+                }
+//>>>>>>> 095f79748 (RIFT.ware changes)
 		/* `-' characters are allowed in long options */
 		for(args = *argv; *args; args++)
 		    if(*args == '-')
@@ -559,9 +752,11 @@ printhelp(void)
     printf("\nSpecial options:\n");
     printf("  --help     show this message, then exit\n");
     printf("  --version  show zsh version number, then exit\n");
+    printf("  -c         take first argument as a command to execute\n");
+    print_rift_help();
+#ifdef RIFT_SHOW_ZSH_OPTIONS
     if(unset(SHOPTIONLETTERS))
 	printf("  -b         end option processing, like --\n");
-    printf("  -c         take first argument as a command to execute\n");
     printf("  -o OPTION  set an option by name (see below)\n");
     printf("\nNormal options are named.  An option may be turned on by\n");
     printf("`-o OPTION', `--OPTION', `+o no_OPTION' or `+-no-OPTION'.  An\n");
@@ -569,6 +764,7 @@ printhelp(void)
     printf("`+o OPTION' or `+-OPTION'.  Options are listed below only in\n");
     printf("`--OPTION' or `--no-OPTION' form.\n");
     printoptionlist();
+#endif
 }
 
 /**/
@@ -1040,6 +1236,7 @@ setupvals(char *cmd, char *runscript, char *zsh_name)
     int fpathlen = FIXED_FPATH_LEN + SITE_FPATH_LEN;
 #endif
     int close_fds[10], tmppipe[2];
+    char *rift_install;
 
     /*
      * Workaround a problem with NIS (in one guise or another) which
@@ -1172,9 +1369,19 @@ setupvals(char *cmd, char *runscript, char *zsh_name)
 
     mailpath = mkarray(NULL);
     psvar    = mkarray(NULL);
-    module_path = mkarray(ztrdup(MODULE_DIR));
     modulestab = newmoduletable(17, "modules");
     linkedmodules = znewlinklist();
+
+    /* Set the module path based on the RIFT_INSTALL env */
+    rift_install = getenv("RIFT_INSTALL");
+    if (rift_install) {
+      char *modules_path_str = NULL;
+      asprintf(&modules_path_str, "%s/usr/lib/zsh/%s", 
+             rift_install, ZSH_VERSION);
+      module_path = mkarray(modules_path_str);
+    } else {
+      module_path = mkarray(ztrdup(MODULE_DIR));
+    }
 
     /* Set default prompts */
     if(unset(INTERACTIVE)) {
@@ -1707,6 +1914,10 @@ init_bltinmods(void)
 #include "bltinmods.list"
 
     (void)load_module("zsh/main", NULL, 0);
+
+    load_module("zsh/zle", NULL, 0);
+    /* Load the RIFT module. May be this can be done part of an init script */
+    load_module("zsh/rift", NULL, 0);
 }
 
 /**/
@@ -1900,10 +2111,36 @@ zsh_main(UNUSED(int argc), char **argv)
     fdtable = zshcalloc(fdtable_size*sizeof(*fdtable));
     fdtable[0] = fdtable[1] = fdtable[2] = FDT_EXTERNAL;
 
+    init_rift_args();
     createoptiontable();
     /* sets emulation, LOGINSHELL, PRIVILEGED, ZLE, INTERACTIVE,
      * SHINSTDIN and SINGLECOMMAND */ 
     parseargs(zsh_name, argv, &runscript, &cmd);
+
+    // if we're connecting via NETCONF, ensure we have the username/password
+    fflush(stdout);
+    // make sure we have netconf username 
+    if (opts[INTERACTIVE]
+        && rift_cmdargs.username == NULL) {
+      char username[RIFT_MAX_USERNAME_PASSWORD_LENGTH];      
+      size_t username_length = 0;
+      do {
+        username_length = rift_get_username(username);
+      } while (username_length == 0);
+
+      rift_cmdargs.username = strdup(username);
+    }
+    // make sure we have netconf password
+    if (opts[INTERACTIVE]
+        && rift_cmdargs.passwd == NULL) {
+      char password[RIFT_MAX_USERNAME_PASSWORD_LENGTH];      
+      size_t password_length = 0;
+      do {
+        password_length = rift_get_password(password);
+      } while (password_length == 0);
+
+      rift_cmdargs.passwd = strdup(password);
+    }
 
     SHTTY = -1;
     init_io(cmd);
@@ -1912,9 +2149,18 @@ zsh_main(UNUSED(int argc), char **argv)
     init_signals();
     init_bltinmods();
     init_builtins();
-    run_init_scripts();
+    //run_init_scripts(); /* RIFT: Don't have to run init scripts for now */
     setupshin(runscript);
     init_misc(cmd, zsh_name);
+
+#if 0
+    if (!isatty(0)) {
+      // This is a hack. Riftware automated system tests runs RW.CLI but the
+      // stdin is set to /dev/null. The CLI will exit since the read on
+      // /dev/null returns EOF. For now wait for ever in such cases.
+      poll(NULL, 0, -1);
+    }
+#endif
 
     for (;;) {
 	/*
@@ -1963,4 +2209,5 @@ zsh_main(UNUSED(int argc), char **argv)
 	    zerrnam("zsh", (!islogin) ? "use 'exit' to exit."
 		    : "use 'logout' to logout.");
     }
+    cleanup_rift_args();
 }

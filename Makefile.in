@@ -63,8 +63,12 @@ install-strip:
 	$(MAKE) install STRIPFLAGS="-s"
 
 # install/uninstall most things
-install: install.bin install.modules install.fns install.man install.runhelp
-uninstall: uninstall.bin uninstall.modules uninstall.fns uninstall.man uninstall.runhelp
+install: install.h install.bin install.modules install.fns install.man install.runhelp
+uninstall: uninstall.h uninstall.bin uninstall.modules uninstall.fns uninstall.man uninstall.runhelp
+
+# install/uninstall few header files required for rift module
+install.h uninstall.h:
+	@cd Src && $(MAKE) $(MAKEDEFS) $@
 
 # install/uninstall just the binary
 install.bin uninstall.bin:

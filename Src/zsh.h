@@ -1494,6 +1494,7 @@ struct execcmd_params {
     int postassigns;		/* The number of assignspc assiguments */
     int htok;			/* tokens in parameter list */
 };
+#define BINF_RW_CMD	        (1<<19)
 
 struct module {
     struct hashnode node;
@@ -1571,6 +1572,11 @@ struct feature_enables {
     /* Optional compiled pattern for str sans +/-, NULL for string match */
     Patprog pat;
 };
+
+/* RIFT related hook functions */
+
+//typedef HashNode (*rw_lookup_hook) _((char *));
+typedef HashNode (*rw_lookup_hook)(char *);
 
 /* C-function hooks */
 
@@ -3237,6 +3243,16 @@ enum {
     ZLE_CMD_GET_KEY,
     ZLE_CMD_SET_HIST_LINE
 };
+
+typedef struct rift_cmdargs_s {
+  int   trace_level;
+  char* schema_listing;
+  int   use_netconf;
+  char* netconf_host;
+  char* netconf_port;
+  char* username;
+  char* passwd;
+}rift_cmdargs_t;
 
 /***************************************/
 /* Hooks in core.                      */

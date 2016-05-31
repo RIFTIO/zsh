@@ -69,6 +69,15 @@ typedef struct funcsave *Funcsave;
  *
  * Bits from noerrexit_bits.
  */
+/* This lookup function returns a default builtin for rw.commands
+ * For non-rw commands returns NULL.
+ * Note the empty comment before the global variable is required
+ * for zsh internal generators to export this variable. */
+
+/**/
+mod_export rw_lookup_hook rw_lookup_fn;
+
+/* used to suppress ERREXIT and trapping of SIGZERR, SIGEXIT. */
 
 /**/
 int noerrexit;
@@ -3045,8 +3054,9 @@ execcmd_exec(Estate state, Execcmd_params eparams,
 	    checked = !has_token(cmdarg);
 	    if (!checked)
 		break;
+//<<<<<<< HEAD
 	    if (type == WC_TYPESET &&
-		(hn = builtintab->getnode2(builtintab, cmdarg))) {
+		    (hn = builtintab->getnode2(builtintab, cmdarg))) {
 		/*
 		 * If reserved word for typeset command found (and so
 		 * enabled), use regardless of whether builtin is
@@ -3054,23 +3064,39 @@ execcmd_exec(Estate state, Execcmd_params eparams,
 		 *
 		 * Reserved words take precedence over shell functions.
 		 */
-		checked = 1;
+		    checked = 1;
 	    } else if (isset(POSIXBUILTINS) && (cflags & BINF_EXEC)) {
 		/*
 		 * POSIX doesn't allow "exec" to operate on builtins
 		 * or shell functions.
 		 */
-		break;
+//=======
+            if (rw_lookup_fn && (hn = rw_lookup_fn(cmdarg))) {
+                is_builtin = 1;
+                break;
+            }
+
+	        if (!(cflags & (BINF_BUILTIN | BINF_COMMAND)) &&
+		        (hn = shfunctab->getnode(shfunctab, cmdarg))) {
+		        is_shfunc = 1;
+		        break;
+	        }
+	        if (!(hn = builtintab->getnode(builtintab, cmdarg))) {
+		        checked = !(cflags & BINF_BUILTIN);
+            }
+//>>>>>>> 095f79748 (RIFT.ware changes)
+		    break;
 	    } else {
-		if (!(cflags & (BINF_BUILTIN | BINF_COMMAND)) &&
-		    (hn = shfunctab->getnode(shfunctab, cmdarg))) {
-		    is_shfunc = 1;
-		    break;
-		}
-		if (!(hn = builtintab->getnode(builtintab, cmdarg))) {
-		    checked = !(cflags & BINF_BUILTIN);
-		    break;
-		}
+
+		    if (!(cflags & (BINF_BUILTIN | BINF_COMMAND)) &&
+		        (hn = shfunctab->getnode(shfunctab, cmdarg))) {
+		        is_shfunc = 1;
+		        break;
+		    }
+		    if (!(hn = builtintab->getnode(builtintab, cmdarg))) {
+		        checked = !(cflags & BINF_BUILTIN);
+		        break;
+		    }
 	    }
 	    orig_cflags |= cflags;
 	    cflags &= ~BINF_BUILTIN & ~BINF_COMMAND;

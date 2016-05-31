@@ -78,6 +78,10 @@ NNTRYOBJ   =
 LDRUNPATH = LD_RUN_PATH=$(libdir)/$(tzsh)
 NDRUNPATH =
 
+RIFT_DEP_HDRS = ../config.h
+RIFT_DEP_ZSH_HDRS = zsh.mdh $(wildcard *.h) $(wildcard *.epro)
+RIFT_DEP_ZLE_HDRS = Zle/zle.mdh $(wildcard Zle/*.h) $(wildcard Zle/*.epro)
+
 EXTRAZSHOBJS = @EXTRAZSHOBJS@
 
 zsh$(EXEEXT): $(@L@IBZSH) $(@L@STMP) $(MAIN_OBJS) zsh.export $(EXTRAZSHOBJS)
@@ -137,13 +141,25 @@ $(ENTRYOBJ): FORCE
 
 # ========== DEPENDENCIES FOR INSTALLING ==========
 
-install: install.bin install.modules
-uninstall: uninstall.bin uninstall.modules
+install: install.h install.bin install.modules
+uninstall: uninstall.h uninstall.bin uninstall.modules
 .PHONY: install uninstall
 
 install.bin: install.bin-here
 uninstall.bin: uninstall.bin-here
 .PHONY: install.bin uninstall.bin
+
+install.h: $(RIFT_DEP_HDRS)
+	${SHELL} $(sdir_top)/mkinstalldirs $(DESTDIR)$(prefix)/include/zsh/Src
+	${SHELL} $(sdir_top)/mkinstalldirs $(DESTDIR)$(prefix)/include/zsh/Src/Zle
+	$(INSTALL_PROGRAM) $(RIFT_DEP_HDRS) $(DESTDIR)$(prefix)/include/zsh
+	$(INSTALL_PROGRAM) $(RIFT_DEP_ZSH_HDRS) $(DESTDIR)$(prefix)/include/zsh/Src
+	$(INSTALL_PROGRAM) $(RIFT_DEP_ZLE_HDRS) $(DESTDIR)$(prefix)/include/zsh/Src/Zle
+.PHONY: install.h
+
+uninstall.h:
+	rm -f $(DESTDIR)$(prefix)/include/zsh
+.PHONY: uninstall.h
 
 # install binary, creating install directory if necessary
 install.bin-here: zsh$(EXEEXT) $(INSTLIB)
