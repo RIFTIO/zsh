@@ -988,7 +988,9 @@ static struct reswd reswds[] = {
     {{NULL, "done", 0}, DONE},
     {{NULL, "elif", 0}, ELIF},
     {{NULL, "else", 0}, ELSE},
-    {{NULL, "end", 0}, ZEND},
+    {{NULL, "zend", 0}, ZEND},  /* Ugly hack to resolve the conflict between 
+                                   RIFT config end and loop end. TODO use a 
+                                   context aware lex parsing */
     {{NULL, "esac", 0}, ESAC},
     {{NULL, "fi", 0}, FI},
     {{NULL, "for", 0}, FOR},

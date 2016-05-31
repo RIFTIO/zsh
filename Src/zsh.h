@@ -1288,6 +1288,7 @@ struct builtin {
   * does not terminate options.
   */
 #define BINF_HANDLES_OPTS	(1<<18)
+#define BINF_RW_CMD	        (1<<19)
 
 struct module {
     struct hashnode node;
@@ -1365,6 +1366,10 @@ struct feature_enables {
     /* Optional compiled pattern for str sans +/-, NULL for string match */
     Patprog pat;
 };
+
+/* RIFT related hook functions */
+
+typedef HashNode (*rw_lookup_hook) _((char *));
 
 /* C-function hooks */
 
@@ -2793,6 +2798,16 @@ enum {
     ZLE_CMD_GET_KEY,
     ZLE_CMD_SET_HIST_LINE
 };
+
+typedef struct rift_cmdargs_s {
+  int   trace_level;
+  char* schema_listing;
+  int   use_netconf;
+  char* netconf_host;
+  char* netconf_port;
+  char* username;
+  char* passwd;
+}rift_cmdargs_t;
 
 /***************************************/
 /* Hooks in core.                      */

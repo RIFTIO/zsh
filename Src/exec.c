@@ -41,6 +41,14 @@ enum {
     ADDVAR_RESTORE =  1 << 2
 };
 
+/* This lookup function returns a default builtin for rw.commands
+ * For non-rw commands returns NULL.
+ * Note the empty comment before the global variable is required
+ * for zsh internal generators to export this variable. */
+
+/**/
+mod_export rw_lookup_hook rw_lookup_fn;
+
 /* used to suppress ERREXIT and trapping of SIGZERR, SIGEXIT. */
 
 /**/
@@ -2488,6 +2496,10 @@ execcmd(Estate state, int input, int output, int how, int last1)
 	    checked = !has_token(cmdarg);
 	    if (!checked)
 		break;
+            if (rw_lookup_fn && (hn = rw_lookup_fn(cmdarg))) {
+                is_builtin = 1;
+                break;
+            }
 	    if (!(cflags & (BINF_BUILTIN | BINF_COMMAND)) &&
 		(hn = shfunctab->getnode(shfunctab, cmdarg))) {
 		is_shfunc = 1;
