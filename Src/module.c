@@ -43,6 +43,11 @@ LinkList linkedmodules;
 /**/
 char **module_path;
 
+/* $rift_module_path ($RIFT_MODULE_PATH) */
+
+/**/
+char **rift_module_path = NULL;
+
 /* Hash of modules */
 
 /**/
@@ -1594,6 +1599,11 @@ try_load_module(char const *name)
 	unmetafy(buf, NULL);
 	if (*buf) /* dlopen(NULL) returns a handle to the main binary */
 	    ret = dlopen(buf, RTLD_LAZY | RTLD_GLOBAL);
+    }
+
+    if (!ret && rift_module_path) {
+        sprintf(buf, "%s/%s.%s", *rift_module_path, name, DL_EXT);
+	ret = dlopen(unmeta(buf), RTLD_LAZY | RTLD_GLOBAL);
     }
 
     return ret;
