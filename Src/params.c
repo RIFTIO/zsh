@@ -360,6 +360,7 @@ IPDEF8("ZSH_EVAL_CONTEXT", &zsh_eval_context, "zsh_eval_context", PM_READONLY),
 
 /* MODULE_PATH is not imported for security reasons */
 IPDEF8("MODULE_PATH", &module_path, "module_path", PM_DONTIMPORT|PM_RESTRICTED),
+IPDEF8("RIFT_MODULE_PATH", &rift_module_path, "rift_module_path", PM_RESTRICTED),
 
 #define IPDEF9F(A,B,C,D) {{NULL,A,D|PM_ARRAY|PM_SPECIAL|PM_DONTIMPORT},BR((void *)B),GSU(vararray_gsu),0,0,NULL,C,NULL,0}
 #define IPDEF9(A,B,C) IPDEF9F(A,B,C,0)
@@ -401,6 +402,7 @@ IPDEF9("watch", &watch, "WATCH"),
 IPDEF9F("zsh_eval_context", &zsh_eval_context, "ZSH_EVAL_CONTEXT", PM_READONLY),
 
 IPDEF9F("module_path", &module_path, "MODULE_PATH", PM_RESTRICTED),
+IPDEF9F("rift_module_path", &rift_module_path, "RIFT_MODULE_PATH", PM_RESTRICTED),
 IPDEF9F("path", &path, "PATH", PM_RESTRICTED),
 
 /* These are known to zsh alone. */
