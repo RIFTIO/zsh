@@ -413,7 +413,6 @@ parseopts_insert(LinkList optlist, char *base, int optno)
 
 static void init_rift_args()
 {
-  rift_cmdargs.schema_listing = NULL;
   rift_cmdargs.trace_level = -1;
   rift_cmdargs.use_netconf = -1;
   rift_cmdargs.netconf_host = NULL;
@@ -424,10 +423,6 @@ static void init_rift_args()
 
 static void cleanup_rift_args()
 {
-  if (rift_cmdargs.schema_listing) {
-    free(rift_cmdargs.schema_listing);
-    rift_cmdargs.schema_listing = NULL;
-  }
   if (rift_cmdargs.netconf_host) {
     free(rift_cmdargs.netconf_host);
     rift_cmdargs.netconf_host = NULL;
@@ -451,15 +446,7 @@ static int parse_rift_arg(char **argv)
   int parsed = 0;
 
   /* The -- would have been stripped already */
-  if (strcmp(*argv, "schema_listing") == 0) {
-    ++argv; parsed += 2;
-    if (*argv == NULL) {
-      zwarn("expected schema listing value");
-    } else {
-      rift_cmdargs.schema_listing = strdup(*argv);
-      fflush(stdout);
-    }
-  } else if (strcmp(*argv, RIFT_ARG_TRACE_LEVEL) == 0) {
+  if (strcmp(*argv, RIFT_ARG_TRACE_LEVEL) == 0) {
     ++argv; parsed += 2;
     if (*argv == NULL) {
       zwarn("expected trace_level value");
@@ -510,7 +497,6 @@ static int parse_rift_arg(char **argv)
 static void print_rift_help()
 {
   printf("\nRiftware Options:\n");
-  printf("  --schema_listing FILE  Schema listing text file from /usr/data/manifest\n");
   printf("  --trace_level    INT   Debug trace-level from 0-9 [default=5]\n");
   printf("  --netconf            Enable netconf mode [default=yes]\n");
   printf("  --netconf_host   HOST  Netconf server host [netconf mode, default=127.0.0.1]\n");
@@ -1236,6 +1222,7 @@ setupvals(char *cmd, char *runscript, char *zsh_name)
     int fpathlen = FIXED_FPATH_LEN + SITE_FPATH_LEN;
 #endif
     int close_fds[10], tmppipe[2];
+    char *rift_install;
 
     /*
      * Workaround a problem with NIS (in one guise or another) which
@@ -1368,11 +1355,19 @@ setupvals(char *cmd, char *runscript, char *zsh_name)
 
     mailpath = mkarray(NULL);
     psvar    = mkarray(NULL);
-    module_path = mkarray(ztrdup(MODULE_DIR));
-    rift_module_path = NULL;
     modulestab = newmoduletable(17, "modules");
     linkedmodules = znewlinklist();
 
+    /* Set the module path based on the RIFT_INSTALL env */
+    rift_install = getenv("RIFT_INSTALL");
+    if (rift_install) {
+      char *modules_path_str = NULL;
+      asprintf(&modules_path_str, "%s/usr/lib/zsh/%s", 
+             rift_install, ZSH_VERSION);
+      module_path = mkarray(modules_path_str);
+    } else {
+      module_path = mkarray(ztrdup(MODULE_DIR));
+    }
 
     /* Set default prompts */
     if(unset(INTERACTIVE)) {
