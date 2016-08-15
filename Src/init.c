@@ -1222,7 +1222,6 @@ setupvals(char *cmd, char *runscript, char *zsh_name)
     int fpathlen = FIXED_FPATH_LEN + SITE_FPATH_LEN;
 #endif
     int close_fds[10], tmppipe[2];
-    char *rift_install;
 
     /*
      * Workaround a problem with NIS (in one guise or another) which
@@ -1357,17 +1356,7 @@ setupvals(char *cmd, char *runscript, char *zsh_name)
     psvar    = mkarray(NULL);
     modulestab = newmoduletable(17, "modules");
     linkedmodules = znewlinklist();
-
-    /* Set the module path based on the RIFT_INSTALL env */
-    rift_install = getenv("RIFT_INSTALL");
-    if (rift_install) {
-      char *modules_path_str = NULL;
-      asprintf(&modules_path_str, "%s/usr/lib/zsh/%s", 
-             rift_install, ZSH_VERSION);
-      module_path = mkarray(modules_path_str);
-    } else {
-      module_path = mkarray(ztrdup(MODULE_DIR));
-    }
+    module_path = mkarray(ztrdup(MODULE_DIR));
 
     /* Set default prompts */
     if(unset(INTERACTIVE)) {
