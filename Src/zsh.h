@@ -2806,6 +2806,8 @@ typedef struct rift_cmdargs_s {
   char* netconf_port;
   char* username;
   char* passwd;
+  int use_rift_var_root;
+  char* rift_var_root;
 }rift_cmdargs_t;
 
 /***************************************/

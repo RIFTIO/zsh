@@ -48,6 +48,7 @@
 #define RIFT_ARG_PASSWD         "passwd"
 #define RIFT_ARG_USE_NETCONF    "netconf"
 #define RIFT_ARG_USE_RWMSG      "rwmsg"
+#define RIFT_ARG_VAR_ROOT       "rift_var_root"
 #define RIFT_MAX_USERNAME_PASSWORD_LENGTH (64)
 
 static void rift_strip_newline(char * line, size_t * length)
@@ -380,6 +381,8 @@ static void init_rift_args()
   rift_cmdargs.netconf_port = NULL;
   rift_cmdargs.username = NULL;
   rift_cmdargs.passwd = NULL;
+  rift_cmdargs.use_rift_var_root = -1;
+  rift_cmdargs.rift_var_root = NULL;
 }
 
 static void cleanup_rift_args()
@@ -399,6 +402,11 @@ static void cleanup_rift_args()
   if (rift_cmdargs.passwd) {
     free(rift_cmdargs.passwd);
     rift_cmdargs.passwd = NULL;
+  }
+
+  if (rift_cmdargs.rift_var_root) {
+    free(rift_cmdargs.rift_var_root);
+    rift_cmdargs.rift_var_root = NULL;
   }
 }
 
@@ -450,6 +458,14 @@ static int parse_rift_arg(char **argv)
   } else if (strcmp(*argv, RIFT_ARG_USE_RWMSG) == 0) {
     rift_cmdargs.use_netconf = 0;
     ++parsed;
+  } else if (strcmp(*argv, RIFT_ARG_VAR_ROOT) == 0) {
+    ++argv; parsed += 2;
+    if (*argv == NULL) {
+      zwarn("expected rift_var_root value");
+    } else {
+      rift_cmdargs.rift_var_root = strdup(*argv);
+      rift_cmdargs.use_rift_var_root = 1;
+    }
   }
 
   return parsed;
@@ -465,6 +481,7 @@ static void print_rift_help()
   printf("  --username       USER  Username to login [netconf mode,default=admin]\n");
   printf("  --passwd         PASS  Password to login [neconf mode,default=admin]\n"); 
   printf("  --rwmsg              Use Riftware messaging instead of Netconf [default=no]\n");
+  printf("  --rift_var_root  PATH Provide the RIFT_VAR_ROOT path to use by the CLI[default=RIFT_INSTALL]\n");
 }
 
 /*
