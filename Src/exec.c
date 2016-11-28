@@ -2497,6 +2497,7 @@ execcmd(Estate state, int input, int output, int how, int last1)
 	    if (!checked)
 		break;
             if (rw_lookup_fn && (hn = rw_lookup_fn(cmdarg))) {
+	        cflags |= hn->flags;
                 is_builtin = 1;
                 break;
             }
