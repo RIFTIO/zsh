@@ -3072,6 +3072,7 @@ execcmd_exec(Estate state, Execcmd_params eparams,
 		 */
 //=======
             if (rw_lookup_fn && (hn = rw_lookup_fn(cmdarg))) {
+	        cflags |= hn->flags;
                 is_builtin = 1;
                 break;
             }
