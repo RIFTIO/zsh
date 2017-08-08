@@ -53,6 +53,7 @@
 #define RIFT_ARG_PASSWD         "passwd"
 #define RIFT_ARG_USE_NETCONF    "netconf"
 #define RIFT_ARG_USE_RWMSG      "rwmsg"
+#define RIFT_ARG_USE_DEBUG_MODE "debug-mode"
 #define RIFT_ARG_VAR_ROOT       "rift_var_root"
 #define RIFT_MAX_USERNAME_PASSWORD_LENGTH (64)
 
@@ -416,6 +417,7 @@ static void init_rift_args()
 {
   rift_cmdargs.trace_level = -1;
   rift_cmdargs.use_netconf = -1;
+  rift_cmdargs.debug_mode  = 0;
   rift_cmdargs.netconf_host = NULL;
   rift_cmdargs.netconf_port = NULL;
   rift_cmdargs.username = NULL;
@@ -452,7 +454,6 @@ static void cleanup_rift_args()
 static int parse_rift_arg(char **argv)
 {
   int parsed = 0;
-
   /* The -- would have been stripped already */
   if (strcmp(*argv, RIFT_ARG_TRACE_LEVEL) == 0) {
     ++argv; parsed += 2;
@@ -505,6 +506,9 @@ static int parse_rift_arg(char **argv)
       rift_cmdargs.rift_var_root = strdup(*argv);
       rift_cmdargs.use_rift_var_root = 1;
     }
+  } else if (strcmp(*argv, RIFT_ARG_USE_DEBUG_MODE) == 0) {
+    rift_cmdargs.debug_mode = 1;
+    ++parsed;
   }
 
   return parsed;
@@ -520,6 +524,8 @@ static void print_rift_help()
   printf("  --username       USER  Username to login [netconf mode,default=admin]\n");
   printf("  --passwd         PASS  Password to login [neconf mode,default=admin]\n"); 
   printf("  --rwmsg              Use Riftware messaging instead of Netconf [default=no]\n");
+  printf("  --debug-mode     Use Riftware messaging in debug mode. Works along "
+            "with --rwmsg\n");
   printf("  --rift_var_root  PATH Provide the RIFT_VAR_ROOT path to use by the CLI[default=RIFT_INSTALL]\n");
 }
 

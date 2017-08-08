@@ -3253,6 +3253,7 @@ typedef struct rift_cmdargs_s {
   char* passwd;
   int use_rift_var_root;
   char* rift_var_root;
+  int debug_mode;
 }rift_cmdargs_t;
 
 /***************************************/
