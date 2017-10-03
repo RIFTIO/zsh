@@ -3244,18 +3244,6 @@ enum {
     ZLE_CMD_SET_HIST_LINE
 };
 
-typedef struct rift_cmdargs_s {
-  int   trace_level;
-  int   use_netconf;
-  char* netconf_host;
-  char* netconf_port;
-  char* username;
-  char* passwd;
-  int use_rift_var_root;
-  char* rift_var_root;
-  int debug_mode;
-}rift_cmdargs_t;
-
 /***************************************/
 /* Hooks in core.                      */
 /***************************************/
