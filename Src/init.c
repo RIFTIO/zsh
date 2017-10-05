@@ -401,6 +401,7 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
     int emulate_required = toplevel;
     char *top_emulation = nam;
 
+    
     *cmdp = 0;
 #define WARN_OPTION(F, S)						\
     do {								\
@@ -505,11 +506,17 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		}
 		if (!(optno = optlookup(*argv))) {
 //<<<<<<< HEAD
+//<<<<<<< HEAD
 		    WARN_OPTION("no such option: %s", *argv);
 		    return 1;
 		} else if (optno == RESTRICTED && toplevel) {
 //=======
             ++argv;
+//=======
+            if( *(argv+1) && **(argv +1) != '-' ) {
+                 ++argv;
+            }
+//>>>>>>> e64494f8c (Accomodate arguments with no value eg: --rwmsg)
             break;
 		} else if (optno == RESTRICTED && !nam) {
 //>>>>>>> 9fe010343 (Remove rift cmd_parsing and login)
@@ -556,7 +563,7 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		    }
 		}
 	    }
-	}
+    }
 	argv++;
     }
  doneoptions:
