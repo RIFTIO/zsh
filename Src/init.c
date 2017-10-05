@@ -323,6 +323,7 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
     int action, optno;
     char **argv = *argvp;
 
+    
     *cmdp = 0;
 #define WARN_OPTION(F, S)						\
     do {								\
@@ -390,7 +391,9 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		}
 	    longoptions:
 		if (!(optno = optlookup(*argv))) {
-            ++argv;
+            if( *(argv+1) && **(argv +1) != '-' ) {
+                 ++argv;
+            }
             break;
 		} else if (optno == RESTRICTED && !nam) {
 		    restricted = action;
@@ -429,7 +432,7 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		    }
 		}
 	    }
-	}
+    }
 	argv++;
     }
  doneoptions:
