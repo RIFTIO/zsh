@@ -1897,7 +1897,7 @@ mod_export char ** zsh_argv;
 
 /**/
 mod_export int
-zsh_main(UNUSED(int argc), char **argv)
+zsh_main(int argc, char **argv)
 {
     char **t, *runscript = NULL, *zsh_name;
     char *cmd;			/* argument to -c */
@@ -1948,16 +1948,61 @@ zsh_main(UNUSED(int argc), char **argv)
 //<<<<<<< HEAD
     /* sets emulation, LOGINSHELL, PRIVILEGED, ZLE, INTERACTIVE,
      * SHINSTDIN and SINGLECOMMAND */ 
-    parseargs(zsh_name, argv, &runscript, &cmd);
+ //   parseargs(zsh_name, argv, &runscript, &cmd);
 //=======
  /*   emulate(zsh_name, 1, &emulation, opts);  
     opts[LOGINSHELL] = (**argv == '-');
     opts[PRIVILEGED] = (getuid() != geteuid() || getgid() != getegid());
+//<<<<<<< HEAD
     opts[USEZLE] = 1; 
     parseargs(argv, &runscript);
     zsh_argv = argv; Newworld */
 //>>>>>>> 9fe010343 (Remove rift cmd_parsing and login)
 
+//=======
+/*Newworld
+    opts[USEZLE] = 1;   
+
+    zsh_argv = malloc((argc+1) * sizeof(char*));
+    int i = 0;
+    while(i < argc)
+    {
+       zsh_argv[i] = strdup(argv[i]);
+       ++i;
+    }
+
+    parseargs(argv, &runscript);
+*/
+/*Newworld*/
+emulate(zsh_name, 1, &emulation, opts);   /* initialises most options */
+    opts[LOGINSHELL] = (**argv == '-');
+    opts[PRIVILEGED] = (getuid() != geteuid() || getgid() != getegid());
+    opts[USEZLE] = 1;   /* may be unset in init_io() */
+
+    /*
+       -- will be stripped from argv during parseargs()  
+       Hence perform a deep copy of zsh arguments to be used in RIFT module
+    */
+    zsh_argv = malloc((argc + 1) * sizeof(char *));
+    if (!zsh_argv) {
+        zwarn("memory allocation failed for zsh_argv");
+        exit(1);
+    }
+
+    for (int i = 0; i < argc; i++) {
+        zsh_argv[i] = strdup(argv[i]);
+        if (!zsh_argv[i]) {
+            zwarn("memory allocation failed for zsh_argv[%d]", i);
+            exit(1);
+        }
+    }
+    zsh_argv[argc] = NULL;   /* Null-terminate */
+
+    /* sets INTERACTIVE, SHINSTDIN and SINGLECOMMAND */
+    parseargs(zsh_name, argv, &runscript, &cmd);
+/*Newworld*/
+ 
+//>>>>>>> 46a847243 (RIFT-18545:zsh command argument parsing broken in master, deep copy of argv to be used in rift module)
     fflush(stdout);
 
     SHTTY = -1;
