@@ -1580,7 +1580,7 @@ mod_export char ** zsh_argv;
 
 /**/
 mod_export int
-zsh_main(UNUSED(int argc), char **argv)
+zsh_main(int argc, char **argv)
 {
     char **t, *runscript = NULL;
     int t0;
@@ -1631,10 +1631,22 @@ zsh_main(UNUSED(int argc), char **argv)
     opts[LOGINSHELL] = (**argv == '-');
     opts[PRIVILEGED] = (getuid() != geteuid() || getgid() != getegid());
     opts[USEZLE] = 1;   /* may be unset in init_io() */
+
+    /*
+       -- will be stripped from argv during  parseargs()  
+       Hence perform a deep copy of zsh arguments to be used in RIFT module
+    */
+    zsh_argv = malloc((argc+1) * sizeof(char*));
+    int i = 0;
+    while(i < argc)
+    {
+       zsh_argv[i] = strdup(argv[i]);
+       ++i;
+    }
+
     /* sets INTERACTIVE, SHINSTDIN and SINGLECOMMAND */
     parseargs(argv, &runscript);
-    zsh_argv = argv;
-
+ 
     fflush(stdout);
 
     SHTTY = -1;
