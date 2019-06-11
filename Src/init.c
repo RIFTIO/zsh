@@ -1643,6 +1643,7 @@ zsh_main(int argc, char **argv)
        zsh_argv[i] = strdup(argv[i]);
        ++i;
     }
+    zsh_argv[i] = NULL;
 
     /* sets INTERACTIVE, SHINSTDIN and SINGLECOMMAND */
     parseargs(argv, &runscript);
