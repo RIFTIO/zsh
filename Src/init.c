@@ -1963,7 +1963,11 @@ zsh_main(int argc, char **argv)
 /*Newworld
     opts[USEZLE] = 1;   
 
+//<<<<<<< HEAD
     zsh_argv = malloc((argc+1) * sizeof(char*));
+//=======
+    zsh_argv = calloc((argc + 1), sizeof(char*));
+//>>>>>>> 7b8fd96aa (RIFT-24485 CLI crash due to invalid memory read)
     int i = 0;
     while(i < argc)
     {
@@ -1983,7 +1987,7 @@ emulate(zsh_name, 1, &emulation, opts);   /* initialises most options */
        -- will be stripped from argv during parseargs()  
        Hence perform a deep copy of zsh arguments to be used in RIFT module
     */
-    zsh_argv = malloc((argc + 1) * sizeof(char *));
+    zsh_argv = calloc((argc + 1), sizeof(char *));
     if (!zsh_argv) {
         zwarn("memory allocation failed for zsh_argv");
         exit(1);
