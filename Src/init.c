@@ -1636,7 +1636,7 @@ zsh_main(int argc, char **argv)
        -- will be stripped from argv during  parseargs()  
        Hence perform a deep copy of zsh arguments to be used in RIFT module
     */
-    zsh_argv = malloc((argc+1) * sizeof(char*));
+    zsh_argv = calloc((argc + 1), sizeof(char*));
     int i = 0;
     while(i < argc)
     {
