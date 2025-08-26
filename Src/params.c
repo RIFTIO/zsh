@@ -383,11 +383,9 @@ IPDEF7("PS3", &prompt3),
 IPDEF7R("PS4", &prompt4),
 IPDEF7("SPROMPT", &sprompt),
 
-//<<<<<<< HEAD
 #define IPDEF9(A,B,C,D) {{NULL,A,D|PM_ARRAY|PM_SPECIAL|PM_DONTIMPORT},BR((void *)B),GSU(vararray_gsu),0,0,NULL,C,NULL,0}
 IPDEF9("*", &pparams, NULL, PM_ARRAY|PM_READONLY_SPECIAL|PM_DONTIMPORT),
 IPDEF9("@", &pparams, NULL, PM_ARRAY|PM_READONLY_SPECIAL|PM_DONTIMPORT),
-//=======
 #define IPDEF8(A,B,C,D) {{NULL,A,D|PM_SCALAR|PM_SPECIAL},BR((void *)B),GSU(colonarr_gsu),0,0,NULL,C,NULL,0}
 IPDEF8("CDPATH", &cdpath, "cdpath", 0),
 IPDEF8("FIGNORE", &fignore, "fignore", 0),
@@ -406,7 +404,6 @@ IPDEF8("RIFT_MODULE_PATH", &rift_module_path, "rift_module_path", PM_RESTRICTED)
 //#define IPDEF9(A,B,C) IPDEF9F(A,B,C,0)
 IPDEF9F("*", &pparams, NULL, PM_ARRAY|PM_SPECIAL|PM_DONTIMPORT|PM_READONLY),
 IPDEF9F("@", &pparams, NULL, PM_ARRAY|PM_SPECIAL|PM_DONTIMPORT|PM_READONLY),
-//>>>>>>> 651dcd5bf (For RIFT.ware, can now load modules from two locations)
 
 /*
  * This empty row indicates the end of parameters available in
@@ -453,14 +450,11 @@ IPDEF9("psvar", &psvar, "PSVAR", PM_TIED),
 
 IPDEF9("zsh_eval_context", &zsh_eval_context, "ZSH_EVAL_CONTEXT", PM_TIED|PM_READONLY_SPECIAL),
 
-//<<<<<<< HEAD
 IPDEF9("module_path", &module_path, "MODULE_PATH", PM_TIED|PM_RESTRICTED),
 IPDEF9("path", &path, "PATH", PM_TIED|PM_RESTRICTED),
-//=======
 IPDEF9F("module_path", &module_path, "MODULE_PATH", PM_RESTRICTED),
 IPDEF9F("rift_module_path", &rift_module_path, "RIFT_MODULE_PATH", PM_RESTRICTED),
 IPDEF9F("path", &path, "PATH", PM_RESTRICTED),
-//>>>>>>> 651dcd5bf (For RIFT.ware, can now load modules from two locations)
 
 /* These are known to zsh alone. */
 

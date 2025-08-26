@@ -3054,7 +3054,6 @@ execcmd_exec(Estate state, Execcmd_params eparams,
 	    checked = !has_token(cmdarg);
 	    if (!checked)
 		break;
-//<<<<<<< HEAD
 	    if (type == WC_TYPESET &&
 		    (hn = builtintab->getnode2(builtintab, cmdarg))) {
 		/*
@@ -3070,7 +3069,6 @@ execcmd_exec(Estate state, Execcmd_params eparams,
 		 * POSIX doesn't allow "exec" to operate on builtins
 		 * or shell functions.
 		 */
-//=======
             if (rw_lookup_fn && (hn = rw_lookup_fn(cmdarg))) {
 	        cflags |= hn->flags;
                 is_builtin = 1;
@@ -3085,7 +3083,6 @@ execcmd_exec(Estate state, Execcmd_params eparams,
 	        if (!(hn = builtintab->getnode(builtintab, cmdarg))) {
 		        checked = !(cflags & BINF_BUILTIN);
             }
-//>>>>>>> 095f79748 (RIFT.ware changes)
 		    break;
 	    } else {
 

@@ -39,15 +39,11 @@
 
 #include "version.h"
 
-//<<<<<<< HEAD
 #if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux)
 #include <sys/sysctl.h>
 #endif
-//=======
 #include <poll.h>
 
-
-//>>>>>>> 095f79748 (RIFT.ware changes)
 
 /**/
 int noexitct = 0;
@@ -445,8 +441,6 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		    printhelp();
 		    //LAST_OPTION(0);      // not last option since --help needs to be parsed again in rift module
 		}
-//<<<<<<< HEAD
-//<<<<<<< HEAD
 		if (!strcmp(*argv, "emulate")) {
 		    ++argv;
 		    if (!*argv) {
@@ -460,14 +454,10 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		    top_emulation = *argv;
 		    break;
 		}
-//=======
                /* if ((parsed = parse_rift_arg(argv)) != 0) {
                   argv += (parsed - 1);
                   break;
                 } Newworld */
-//>>>>>>> 095f79748 (RIFT.ware changes)
-//=======
-//>>>>>>> 9fe010343 (Remove rift cmd_parsing and login)
 		/* `-' characters are allowed in long options */
 		for(args = *argv; *args; args++)
 		    if(*args == '-')
@@ -505,21 +495,15 @@ parseopts(char *nam, char ***argvp, char *new_opts, char **cmdp,
 		    emulate_required = 0;
 		}
 		if (!(optno = optlookup(*argv))) {
-//<<<<<<< HEAD
-//<<<<<<< HEAD
 		    WARN_OPTION("no such option: %s", *argv);
 		    return 1;
 		} else if (optno == RESTRICTED && toplevel) {
-//=======
             ++argv;
-//=======
             if( *(argv+1) && **(argv +1) != '-' ) {
                  ++argv;
             }
-//>>>>>>> e64494f8c (Accomodate arguments with no value eg: --rwmsg)
             break;
 		} else if (optno == RESTRICTED && !nam) {
-//>>>>>>> 9fe010343 (Remove rift cmd_parsing and login)
 		    restricted = action;
 		} else if ((optno == EMACSMODE || optno == VIMODE) && !toplevel) {
 		    WARN_OPTION("can't change option: %s", *argv);
@@ -1945,40 +1929,7 @@ zsh_main(int argc, char **argv)
     fdtable[0] = fdtable[1] = fdtable[2] = FDT_EXTERNAL;
 
     createoptiontable();
-//<<<<<<< HEAD
-    /* sets emulation, LOGINSHELL, PRIVILEGED, ZLE, INTERACTIVE,
-     * SHINSTDIN and SINGLECOMMAND */ 
- //   parseargs(zsh_name, argv, &runscript, &cmd);
-//=======
- /*   emulate(zsh_name, 1, &emulation, opts);  
-    opts[LOGINSHELL] = (**argv == '-');
-    opts[PRIVILEGED] = (getuid() != geteuid() || getgid() != getegid());
-//<<<<<<< HEAD
-    opts[USEZLE] = 1; 
-    parseargs(argv, &runscript);
-    zsh_argv = argv; Newworld */
-//>>>>>>> 9fe010343 (Remove rift cmd_parsing and login)
 
-//=======
-/*Newworld
-    opts[USEZLE] = 1;   
-
-//<<<<<<< HEAD
-    zsh_argv = malloc((argc+1) * sizeof(char*));
-//=======
-    zsh_argv = calloc((argc + 1), sizeof(char*));
-//>>>>>>> 7b8fd96aa (RIFT-24485 CLI crash due to invalid memory read)
-    int i = 0;
-    while(i < argc)
-    {
-       zsh_argv[i] = strdup(argv[i]);
-       ++i;
-    }
-    zsh_argv[i] = NULL;
-
-    parseargs(argv, &runscript);
-*/
-/*Newworld*/
 emulate(zsh_name, 1, &emulation, opts);   /* initialises most options */
     opts[LOGINSHELL] = (**argv == '-');
     opts[PRIVILEGED] = (getuid() != geteuid() || getgid() != getegid());
@@ -2007,7 +1958,6 @@ emulate(zsh_name, 1, &emulation, opts);   /* initialises most options */
     parseargs(zsh_name, argv, &runscript, &cmd);
 /*Newworld*/
  
-//>>>>>>> 46a847243 (RIFT-18545:zsh command argument parsing broken in master, deep copy of argv to be used in rift module)
     fflush(stdout);
 
     SHTTY = -1;
